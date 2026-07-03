@@ -4,6 +4,6 @@
     "buildCommand": "export COMPOSER_ALLOW_SUPERUSER=1 && composer install --no-dev --optimize-autoloader"
   },
   "deploy": {
-    "startCommand": "php -S 0.0.0.0:8000 -t public"
+    "startCommand": "php -S 0.0.0.0:8000"
   }
 }
