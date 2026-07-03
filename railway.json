@@ -1,9 +1,9 @@
 {
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "export COMPOSER_ALLOW_SUPERUSER=1 && composer install --no-dev --optimize-autoloader"
+    "buildCommand": "composer install --no-dev --optimize-autoloader"
   },
   "deploy": {
-    "startCommand": "php -S 0.0.0.0:8000"
+    "startCommand": "php -S 0.0.0.0:8000 -t public"
   }
 }
