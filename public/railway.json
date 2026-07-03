@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "composer install --no-dev --optimize-autoloader"
+  },
+  "deploy": {
+    "startCommand": "php -S 0.0.0.0:8000 -t public"
+  }
+}
