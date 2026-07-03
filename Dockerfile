@@ -2,11 +2,22 @@ FROM php:8.3-cli
 
 WORKDIR /app
 
-COPY . .
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    && docker-php-ext-install zip pdo_mysql mbstring exif pcntl bcmath gd
 
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-RUN php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
 
-CMD ["php", "-S", "0.0.0.0:8000"]
+EXPOSE 8000
+
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
