@@ -3,7 +3,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "python -m http.server 8000",
+    "startCommand": "php -S 0.0.0.0:8000 -t public",
     "healthcheckPath": "/",
     "healthcheckTimeout": 300
   }
