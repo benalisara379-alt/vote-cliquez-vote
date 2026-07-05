@@ -1,9 +1,11 @@
 {
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "composer install --no-dev --optimize-autoloader"
+    "builder": "DOCKERFILE",
+    "buildCommand": "docker build -t app ."
   },
   "deploy": {
-    "startCommand": "php -S 0.0.0.0:8000 -t public"
+    "startCommand": "php artisan serve --host=0.0.0.0 --port=8000",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 100
   }
 }
